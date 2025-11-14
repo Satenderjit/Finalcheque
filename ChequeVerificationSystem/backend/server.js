@@ -22,7 +22,7 @@ app.use('/api/cheques', require('./routes/chequeRoutes'));
 
 // Health check route
 app.get('/', (req, res) => {
-  res.json({ message: 'Cheque Verification API is running!' });
+  res.json({ message: 'Cheque Verification API is running! (Updated from local)' });
 });
 
 const PORT = process.env.PORT || 5000;
