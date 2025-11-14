@@ -7,14 +7,30 @@ const router = express.Router();
 router.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
   try {
     // Parse the raw body as JSON
-    const body = JSON.parse(req.body.toString());
+    let body;
+    try {
+      body = JSON.parse(req.body.toString());
+    } catch (parseError) {
+      console.error('Error parsing webhook request:', parseError);
+      return res.status(400).json({
+        status: 400,
+        data: {
+          success: false,
+          error: 'Invalid JSON in request body'
+        }
+      });
+    }
 
     // Extract function details from the Retell AI payload
     const { function_call, function_name } = body;
 
     if (!function_call || !function_name) {
       return res.status(400).json({
-        error: 'Invalid request format from Retell AI'
+        status: 400,
+        data: {
+          success: false,
+          error: 'Invalid request format from Retell AI - missing function_call or function_name'
+        }
       });
     }
 
@@ -30,7 +46,11 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req, res
         break;
       default:
         return res.status(400).json({
-          error: `Unknown function: ${function_name}`
+          status: 400,
+          data: {
+            success: false,
+            error: `Unknown function: ${function_name}`
+          }
         });
     }
 
