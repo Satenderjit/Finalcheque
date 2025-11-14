@@ -19,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/cheques', require('./routes/chequeRoutes'));
+app.use('/retell', require('./routes/retellRoutes')); // Retell AI routes
 
 // Health check route
 app.get('/', (req, res) => {
