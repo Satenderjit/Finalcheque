@@ -1,21 +1,36 @@
 const express = require('express');
 
-// Import Cheque model inside the functions to avoid potential initialization issues
-let Cheque;
-
-// Lazy load the Cheque model when needed
-function getChequeModel() {
-  if (!Cheque) {
-    Cheque = require('../models/Cheque.js');
-  }
-  return Cheque;
-}
-
 const router = express.Router();
+
+// Test endpoint to check if route is working
+router.get('/test', async (req, res) => {
+  try {
+    res.json({ success: true, message: 'Route is accessible' });
+  } catch (error) {
+    console.error('Test route error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Test endpoint to check database connection
+router.get('/db-test', async (req, res) => {
+  try {
+    // Try to import and use Cheque model
+    const Cheque = require('../models/Cheque.js');
+
+    // Just return a simple success message to test model import
+    res.json({ success: true, message: 'Database model imported successfully' });
+  } catch (error) {
+    console.error('DB test route error:', error);
+    res.status(500).json({ success: false, error: 'DB connection error: ' + error.message });
+  }
+});
 
 // Retell AI webhook endpoint - this is called by Retell AI to execute custom functions
 router.post('/webhook', express.json({ type: 'application/json' }), async (req, res) => {
   try {
+    console.log('Webhook called with body:', JSON.stringify(req.body)); // Debug log
+
     // Access the parsed body directly
     const { function_call, function_name } = req.body;
 
@@ -79,7 +94,7 @@ router.post('/verify', express.json(), async (req, res) => {
       });
     }
 
-    const Cheque = getChequeModel(); // Lazy load model
+    const Cheque = require('../models/Cheque.js');
 
     const cheque = await Cheque.findOne({
       name: new RegExp(`^${name}$`, 'i'),
@@ -126,7 +141,7 @@ async function handleVerifyCheque(params) {
       };
     }
 
-    const Cheque = getChequeModel(); // Lazy load model
+    const Cheque = require('../models/Cheque.js');
 
     const cheque = await Cheque.findOne({
       name: new RegExp(`^${name}$`, 'i'),
@@ -172,7 +187,7 @@ async function handleAddCheque(params) {
       };
     }
 
-    const Cheque = getChequeModel(); // Lazy load model
+    const Cheque = require('../models/Cheque.js');
 
     // Check if cheque number already exists
     const existingCheque = await Cheque.findOne({
@@ -219,7 +234,9 @@ router.get('/', (req, res) => {
     message: 'Retell AI Integration is running!',
     endpoints: {
       webhook: 'POST /retell/webhook (for Retell AI functions)',
-      verify: 'POST /retell/verify (for manual testing)'
+      verify: 'POST /retell/verify (for manual testing)',
+      test: 'GET /retell/test (to test route accessibility)',
+      db_test: 'GET /retell/db-test (to test database connectivity)'
     }
   });
 });
