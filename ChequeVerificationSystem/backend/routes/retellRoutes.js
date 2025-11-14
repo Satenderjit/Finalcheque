@@ -197,8 +197,8 @@ router.get('/', (req, res) => {
   res.json({
     message: 'Retell AI Integration is running!',
     endpoints: {
-      webhook: '/retell/webhook (POST)',
-      verify: '/retell/verify (POST)'
+      webhook: 'POST /retell/webhook (for Retell AI functions)',
+      verify: 'POST /retell/verify (for manual testing)'
     }
   });
 });
