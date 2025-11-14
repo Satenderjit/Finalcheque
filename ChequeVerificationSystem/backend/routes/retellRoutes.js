@@ -4,25 +4,11 @@ const Cheque = require('../models/Cheque.js');
 const router = express.Router();
 
 // Retell AI webhook endpoint - this is called by Retell AI to execute custom functions
-router.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
+// Using regular body parsing instead of raw for better compatibility
+router.post('/webhook', express.json({ type: 'application/json' }), async (req, res) => {
   try {
-    // Parse the raw body as JSON
-    let body;
-    try {
-      body = JSON.parse(req.body.toString());
-    } catch (parseError) {
-      console.error('Error parsing webhook request:', parseError);
-      return res.status(400).json({
-        status: 400,
-        data: {
-          success: false,
-          error: 'Invalid JSON in request body'
-        }
-      });
-    }
-
-    // Extract function details from the Retell AI payload
-    const { function_call, function_name } = body;
+    // Access the parsed body directly
+    const { function_call, function_name } = req.body;
 
     if (!function_call || !function_name) {
       return res.status(400).json({
@@ -66,7 +52,7 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req, res
       status: 500,
       data: {
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error: ' + error.message
       }
     });
   }
