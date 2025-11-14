@@ -1,10 +1,19 @@
 const express = require('express');
-const Cheque = require('../models/Cheque.js');
+
+// Import Cheque model inside the functions to avoid potential initialization issues
+let Cheque;
+
+// Lazy load the Cheque model when needed
+function getChequeModel() {
+  if (!Cheque) {
+    Cheque = require('../models/Cheque.js');
+  }
+  return Cheque;
+}
 
 const router = express.Router();
 
 // Retell AI webhook endpoint - this is called by Retell AI to execute custom functions
-// Using regular body parsing instead of raw for better compatibility
 router.post('/webhook', express.json({ type: 'application/json' }), async (req, res) => {
   try {
     // Access the parsed body directly
@@ -59,7 +68,7 @@ router.post('/webhook', express.json({ type: 'application/json' }), async (req, 
 });
 
 // Alternative endpoint if you prefer direct API calls for testing
-router.post('/verify', async (req, res) => {
+router.post('/verify', express.json(), async (req, res) => {
   try {
     const { name, chequeNumber } = req.body;
 
@@ -69,6 +78,8 @@ router.post('/verify', async (req, res) => {
         message: 'Please provide both name and cheque number'
       });
     }
+
+    const Cheque = getChequeModel(); // Lazy load model
 
     const cheque = await Cheque.findOne({
       name: new RegExp(`^${name}$`, 'i'),
@@ -98,7 +109,7 @@ router.post('/verify', async (req, res) => {
     console.error('RETELL ERROR:', error);
     return res.json({
       success: false,
-      message: 'Server error'
+      message: 'Server error: ' + error.message
     });
   }
 });
@@ -114,6 +125,8 @@ async function handleVerifyCheque(params) {
         message: 'Name and cheque number are required'
       };
     }
+
+    const Cheque = getChequeModel(); // Lazy load model
 
     const cheque = await Cheque.findOne({
       name: new RegExp(`^${name}$`, 'i'),
@@ -142,7 +155,7 @@ async function handleVerifyCheque(params) {
     console.error('Error in handleVerifyCheque:', error);
     return {
       success: false,
-      error: 'Database error during verification'
+      error: 'Database error during verification: ' + error.message
     };
   }
 }
@@ -158,6 +171,8 @@ async function handleAddCheque(params) {
         message: 'Name, cheque number, and status are required'
       };
     }
+
+    const Cheque = getChequeModel(); // Lazy load model
 
     // Check if cheque number already exists
     const existingCheque = await Cheque.findOne({
@@ -193,7 +208,7 @@ async function handleAddCheque(params) {
     console.error('Error in handleAddCheque:', error);
     return {
       success: false,
-      error: 'Database error during cheque addition'
+      error: 'Database error during cheque addition: ' + error.message
     };
   }
 }
